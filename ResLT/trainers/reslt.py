@@ -22,17 +22,20 @@ import time
 NOTES:
 - CLASS ResLTAdapter: Adapter layer, comprises of ResLT adapter layer only.
 - CLASS TextEncoder: Contains a very simple implementation of TextEncoder in CLIP. No modifications
-- CLASS AttentionPool2d: [COMMENTED] Contains implementation of AttentionPool Layer proposed in "https://github.com/openai/CLIP/blob/main/clip/model.py"
+- CLASS AttentionPool2d: [REMOVED FOR NOW] Contains implementation of AttentionPool Layer proposed in "https://github.com/openai/CLIP/blob/main/clip/model.py"
 - CLASS AverageMeter: Combines loss accuracy, implemented in the original ResLT framework. [NEED TO GET RID OF IT OR INTEGRATE COMPLETELY]
 - CLASS CustomCLIP: Combines the ResLT adapter layer after the vision encoder model and before calculating the logits. 
 - CLASS ResLT: MAIN TRAINER CLASS. Controls how the ResLT adapter is implemented and monitors the backpropagation of ResLTAdapter.
 
-CURRENT PROBLEM: RuntimeError: The size of tensor a (799) must match the size of tensor b (1024) at non-singleton dimension 1. [383]
-CURRENT OBJECTIVE: Create a stable/balanced ResLT Trainer for experiments.
+CURRENT PROBLEM: IndexOutOfBoundsError: block: [0,0,0], thread: [2,0,0] Assertion `idx_dim >= 0 && idx_dim < index_size && "index out of bounds"` failed.
+CURRENT OBJECTIVE: Resolve the mini-batch issue within the Trainer Class and creating a stable validation function for evaluation.
 
-NOTABLE ISSUES:
-- Fixing the dimension mismatch between the target [16, 799] and the logit [16, 1024].
-- Fixing the misalignment between number of classnames/classes in the CustomCLIP CLASS [266, 268] and the ResLT Trainer CLASS [346, 410].
+NOTABLE OBSERVATIONS:
+- Fixing the dimension mismatch between the target [16, 799] and the logit [16, 1024]. [SOLVED]
+- Fixing the misalignment between number of classnames/classes in the CustomCLIP CLASS [266, 268] and the ResLT Trainer CLASS [346, 410]. [SOLVED]
+- The misalignment issue has been resolved however, the crossEntropy function runs into error after every batch iteration.
+- Accuracy calculation is not working which is why there is no gradient update.
+- Check whether there is an existing mismatch in classnames and number of classes as they can lead to dimension misalignment.  
 """
 
 
@@ -84,9 +87,9 @@ class ResLTAdapter(nn.Module):
         
         super(ResLTAdapter, self).__init__()
         self.inplanes = inplanes
-        self.num_classes = 799
+        self.num_classes = cfg.TRAINER.RESLT.NUM_CLASSES
         self.expansion = 4
-        self.gamma = 0.5
+        self.gamma = cfg.TRAINER.RESLT.GAMMA
         self.is_dropout = True
         self.use_final_block = use_final_block
         self.training = training
@@ -277,23 +280,11 @@ class ResLT(TrainerX):
     """ ResLT-Adapter """
 
     """
-    PROBLEM: Dimension mis-match in the "crossEntropy()" function. [383]
-
-    TO-DO List:
-    - Need to reposition the class attributes, such as criterion, softmax, class_numbers. [388]
-    - Check the compatibility between labels and logits. [Ensure if the loss calculation is happening properly] [383]
-    - Handle the explicit declaration of dataset split. []
-    - Confirm whether the problem here is regarding multi-classification or embedding alignment.'
-    - Convert self.beta to args.beta. [422]
+    PROBLEM: IndexOutOfBoundsError in the "crossEntropy()" function. [326]
     """
 
     def build_model(self):
-        """
-        NOTES:
-        - Discrepancy between "self.dm.dataset.classnames" and "self.num_classes". 
-        - Both are coming from Data Manager class. 
-        - 
-        """
+
         cfg = self.cfg
         classnames = self.dm.dataset.classnames
         
@@ -338,7 +329,7 @@ class ResLT(TrainerX):
         print(f"Label length: {len(label)}")
         print(f"Num Classes: {num_classes}")
         target = F.one_hot(label, num_classes=num_classes) # num_classes should be => "num_classes=num_classes"
-        print("Inside the Cross Entropy Function [Line 379]!!!")
+        print("Inside the Cross Entropy Function [Line 332]!!!")
         print(f"Target Dimension: {target.shape}")
         print(f"Logit Dimension: {logit.shape}")
         print(f"Weight Dimension: {weight.shape}")

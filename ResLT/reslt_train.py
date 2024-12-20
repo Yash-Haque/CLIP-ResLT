@@ -108,19 +108,21 @@ def extend_cfg(cfg):
 
 
     cfg.TRAINER.ResLT = CN()
-    cfg.TRAINER.ResLT.N_CTX = 16  # number of context vectors
-    cfg.TRAINER.ResLT.CSC = False  # class-specific context
-    cfg.TRAINER.ResLT.CTX_INIT = ""  # initialization words
+    cfg.TRAINER.ResLT.BETA = 0.85  
+    cfg.TRAINER.ResLT.GAMMA = 0.5  
+    cfg.TRAINER.ResLT.NUM_CLASSES = 15501  
     cfg.TRAINER.ResLT.PREC = "fp16"  # fp16, fp32, amp
+    cfg.TRAINER.ResLT.DROPOUT = True # Training dropout
     cfg.TRAINER.ResLT.CLASS_TOKEN_POSITION = "end"  # 'middle' or 'end' or 'front'
-
+    
     cfg.DATASET.SUBSAMPLE_CLASSES = "all"  # all, base or new
 
-    # # HERB Configs
-    # cfg.DATASET.HERB = CN()
+    # HERB Configs
+    cfg.DATASET.HERB = CN()
     # cfg.DATASET.HERB.PREPROCESS = None  # Placeholder for preprocess function
     # cfg.DATASET.HERB.RATIO = 1.0  # Default ratio value
-
+    cfg.DATASET.HERB.TRAIN_META = "./train_metadata.json"
+    cfg.DATASET.HERB.TEST_META = "./test_metadata.json"
 
 def setup_cfg(args):
     cfg = get_cfg_default()

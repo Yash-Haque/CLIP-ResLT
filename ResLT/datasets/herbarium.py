@@ -22,32 +22,39 @@ class HERB(DatasetBase):
  
 
     def __init__(self, cfg):
+        # Relevant variables
         self.root = os.path.abspath(os.path.expanduser(cfg.DATASET.ROOT))
         self.train_dir = os.path.join(self.root,"Samples/")
+        self.train_meta_path = os.path.abspath(os.path.expanduser(cfg.DATASET.HERB.TRAIN_META))
+        # self.test_meta_path = os.path.abspath(os.path.expanduser(cfg.DATASET.HERB.TEST_META))
         self.preprocessed = os.path.join(self.root,"preprocessed.pkl")
-        self.meta_path = os.path.join(self.root, "train_metadata.json")
         self.split_fewshot_dir = os.path.join(self.dataset_dir, "split_fewshot")
+
+        # Irrelevant Variable
         self.ratio = 0.4  # Ratio for dataset splitting
+
+
         mkdir_if_missing(self.split_fewshot_dir)
-        
         if os.path.exists(self.preprocessed):
             with open(self.preprocessed, "rb") as f:
                 preprocessed = pickle.load(f)
                 train = preprocessed["train"]
                 test = preprocessed["test"]
         else:
-            # Load metadata
+            # Load train metadata
             print(f'Preprocessed File "{self.preprocessed}" Does NOT Exist.')
             if not os.path.exists(self.meta_path):
                 raise FileNotFoundError(f"Metadata file not found at {self.meta_path}")
-            with open(self.meta_path, 'r') as f:
+            with open(self.train_meta_path, 'r') as f:
                 self.train_meta = json.load(f)
 
             print("Extracting Train Samples")
-            train_items = self.read_dataset()
+            train_items, test_items = self.read_dataset()
 
-            print("Creating Dataset Split")
-            self.split_dataset(train_items)
+            # Not Relevant
+            # print("Creating Dataset Split")
+            # self.split_dataset(train_items)
+            # Not Relevant
 
             train = self.train_items
             test = self.test_items

@@ -1,9 +1,9 @@
 DATALOADER:
   TRAIN_X:
-    BATCH_SIZE: 16
+    BATCH_SIZE: 32
   TEST:
-    BATCH_SIZE: 16
-  NUM_WORKERS: 4
+    BATCH_SIZE: 100
+  NUM_WORKERS: 8
 
 INPUT:
   SIZE: (224, 224)
@@ -14,7 +14,7 @@ INPUT:
 
 OPTIM:
   NAME: "sgd"
-  LR: 0.1 #og: 0.002
+  LR: 0.1 #original value: 0.002
   MAX_EPOCH: 20
   LR_SCHEDULER: "cosine"
   WARMUP_EPOCH: 1
@@ -28,16 +28,3 @@ MODEL:
   BACKBONE:
     NAME: "RN50"
 
-DATASET:
-  NAME: "HERB"
-  ROOT: "D:/CV/CLIP-New/HRB/"
-# DATASET:
-#   NAME: "ImageNet"
-#   ROOT: "D:/CV/CLIP-New/ImageNet/"
-# ADAPTER:
-#   BETA: 0.85
-#   GAMMA: 0.5
-#   NUM_CLASSES: 15501
-#   EXPANSION: 4
-#   AFTER1x1CONV: True
-#   DROPOUT: True
